@@ -11,6 +11,16 @@ def load_data(path : str):
 
 
 def split_train_test(name : str):
+    """"
+        valid names are: 
+            airline_passenger_satisfaction,
+            breast_cancer,
+            winequality_white,
+            winequality_red
+
+        use: returns train_X, test_X, train_Y, test_Y
+        everything is a pd.DataFrame
+    """
     df = None
     if name == "breast_cancer":
         path = "data/breast_cancer/breast-cancer.data"
