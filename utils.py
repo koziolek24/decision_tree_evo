@@ -2,11 +2,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 
 def load_csv(path : str, delimiter=','):
-    fh = open(path, 'r')
-    return pd.read_csv(fh, delimiter=delimiter)
+    return pd.read_csv(path, delimiter=delimiter)
 
 def load_data(path : str):
-    fh = open(path, 'r')
     return pd.read_csv(path, names=['Class', 'age', 'menopause', 'tumor-size', 'inv-nodes', 'node-caps', 'deg-malig', 'breast', 'breast-quad', 'irradiat'])
 
 
@@ -38,7 +36,7 @@ def split_train_test(name : str):
         elif name == "winequality_white":
             path = "data/wine_quality/winequality-white.csv"
         else:
-            raise ValueError("wrong name")
+            raise ValueError("wrong name", name)
         df = load_csv(path, ';')
     train, test = train_test_split(df, test_size=0.2)
     train_X, train_Y = split_data_target(train, name)
