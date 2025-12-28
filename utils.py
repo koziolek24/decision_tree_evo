@@ -50,7 +50,7 @@ def split_data_target(df : pd.DataFrame, name: str):
         'airline_passenger_satisfaction': 'satisfaction',
         'winequality_red': 'quality',
         'winequality_white': 'quality',
-        'breast_cancer': 'irradiat'
+        'breast_cancer': 'Class'
     }
     
     # Encode categorical columns

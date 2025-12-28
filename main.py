@@ -16,9 +16,9 @@ def run_experiment(dataset_name):
     
     generations = 50
     population_count = 50
-    sample_size = 5
-    cross_breed_prob = 0.5
-    add_child_prob = 0.4
+    sample_size = 3
+    cross_breed_prob = 0.2
+    add_child_prob = 0.3
     
     print("Starting evolution...")
     start_time = time.time()
