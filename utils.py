@@ -52,8 +52,6 @@ def split_data_target(df : pd.DataFrame, name: str):
         'winequality_white': 'quality',
         'breast_cancer': 'Class'
     }
-    
-    # Encode categorical columns
     for col in df.select_dtypes(include=['object', 'category']).columns:
         df[col] = df[col].astype('category').cat.codes
 
