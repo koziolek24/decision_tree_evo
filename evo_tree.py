@@ -1,13 +1,13 @@
 from copy import deepcopy
 from dataclasses import dataclass
 import random
-from typing import Callable, Self
+from typing import Callable
 
 
 @dataclass
 class TreeNode:
     parameter_key: int
-    children: list[tuple[float, Self]]
+    children: list[tuple[float, "TreeNode"]]
     represented_class: int
 
     def get_class(self, case: list[float]) -> int:
@@ -17,39 +17,54 @@ class TreeNode:
         for i in range(1, len(self.children)):
             if self.children[i][0] > case[self.parameter_key]:
                 return self.children[i - 1][1].get_class(case)
-        return self.children[0][1].get_class(case)
+        return self.children[-1][1].get_class(case)
 
-    def all_nodes(self) -> list[Self]:
-        ret = [self]
+    def all_nodes(self) -> list["TreeNode"]:
+        ret: list["TreeNode"] = [self]
         for _, child in self.children:
             ret.extend(child.all_nodes())
         return ret
 
     def mutate(
         self,
-        class_rng: Callable[[], int],
-        parameter_rng: Callable[[], int],
-        delta_split_rng: Callable[[], float],
+        class_rng: Callable[[], int] | None,
+        parameter_rng: Callable[[], int] | None,
+        delta_split_rng: Callable[[], float] | None,
+        new_node_rng: Callable[[], bool] | None,
+        split_rng: Callable[[], float] | None,
     ):
-        self.represented_class = class_rng()
-        self.parameter_key = parameter_rng()
+        if class_rng:
+            self.represented_class = class_rng()
+        if parameter_rng:
+            self.parameter_key = parameter_rng()
 
-        child = random.randint(0, len(self.children) - 1)
-        self.children[child] = (
-            self.children[child][0] + delta_split_rng(),
-            self.children[child][1],
-        )
-        self.children.sort(key=lambda x: x[0])
+        if delta_split_rng:
+            child = random.randint(0, len(self.children) - 1)
+            self.children[child] = (
+                self.children[child][0] + delta_split_rng(),
+                self.children[child][1],
+            )
+            self.children.sort(key=lambda x: x[0])
 
-    def insert_random_split(self, rng: Callable[[], float], child: Self):
+        if (
+            new_node_rng
+            and new_node_rng()
+            and class_rng
+            and parameter_rng
+            and split_rng
+        ):
+            new_node = random_node(class_rng, parameter_rng)
+            self.insert_at_random(split_rng, new_node)
+
+    def insert_random_split(self, rng: Callable[[], float], child: "TreeNode"):
         split = rng()
         self.children.append((split, child))
         self.children.sort(key=lambda x: x[0])
 
-    def random_descendant(self) -> Self:
+    def random_descendant(self) -> "TreeNode":
         return random.choice(self.all_nodes())
 
-    def find_parent(self, target: Self) -> Self | None:
+    def find_parent(self, target: "TreeNode") -> "TreeNode | None":
         for _, child in self.children:
             if child is target:
                 return self
@@ -57,6 +72,9 @@ class TreeNode:
             if parent:
                 return parent
         return None
+
+    def insert_at_random(self, rng: Callable[[], float], node: "TreeNode"):
+        self.random_descendant().insert_random_split(rng, node)
 
 
 type Tree = TreeNode
