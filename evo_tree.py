@@ -30,16 +30,21 @@ class TreeNode:
         class_rng: Callable[[], int],
         parameter_rng: Callable[[], int],
         delta_split_rng: Callable[[], float],
+        split_rng: Callable[[], float],
+        add_child_prob: float,
     ):
         self.represented_class = class_rng()
         self.parameter_key = parameter_rng()
+        if len(self.children) > 0:
+            child = random.randint(0, len(self.children) - 1)
+            self.children[child] = (
+                self.children[child][0] + delta_split_rng(),
+                self.children[child][1],
+            )
+            self.children.sort(key=lambda x: x[0])
 
-        child = random.randint(0, len(self.children) - 1)
-        self.children[child] = (
-            self.children[child][0] + delta_split_rng(),
-            self.children[child][1],
-        )
-        self.children.sort(key=lambda x: x[0])
+        if random.random() < add_child_prob:
+            self.insert_random_split(split_rng, random_node(class_rng, parameter_rng))
 
     def insert_random_split(self, rng: Callable[[], float], child: Self):
         split = rng()
