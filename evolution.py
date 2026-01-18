@@ -26,13 +26,13 @@ def calculate_accuracy(tree: TreeNode, X: pd.DataFrame, Y: pd.Series) -> float:
 
 
 def evolution(
-    generations: int,
     population_count: int,
     train_X: pd.DataFrame,
     train_Y: pd.Series,
     sample_size: int,
     cross_breed_prob: float,
     add_child_prob: float,
+    patience: int,
 ) -> TreeNode:
     parameters_count = train_X.shape[1]
     classes_count = train_Y.nunique()
@@ -41,6 +41,7 @@ def evolution(
     )
     best_tree = None
     best_score = -1
+    no_improvement_count = 0
 
     min_val = train_X.min().min()
     max_val = train_X.max().max()
@@ -60,7 +61,7 @@ def evolution(
     def penalty(tree: TreeNode):
         return 1 - 0.01 * len(tree.all_nodes())
 
-    for _ in range(generations):
+    while True:
         scores: list[float] = []
         for tree in population:
             score = calculate_accuracy(tree, train_X, train_Y)
@@ -70,6 +71,15 @@ def evolution(
             if score > best_score:
                 best_score = score
                 best_tree = tree
+                no_improvement_count = 0
+            else:
+                no_improvement_count += 1
+
+            if no_improvement_count >= patience:
+                break
+
+        if no_improvement_count >= patience:
+            break
 
         new_population: list[TreeNode] = sorted(
             population, key=lambda x: x.last_score * penalty(x)
