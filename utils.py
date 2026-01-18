@@ -1,7 +1,7 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split # type: ignore
 
-def load_csv(path : str, delimiter=','):
+def load_csv(path : str, delimiter: str =','):
     return pd.read_csv(path, delimiter=delimiter)
 
 def load_data(path : str):
@@ -38,9 +38,9 @@ def split_train_test(name : str):
         else:
             raise ValueError("wrong name", name)
         df = load_csv(path, ';')
-    train, test = train_test_split(df, test_size=0.2)
-    train_X, train_Y = split_data_target(train, name)
-    test_X, test_Y = split_data_target(test, name)
+    train, test = train_test_split(df, test_size=0.2) # type: ignore
+    train_X, train_Y = split_data_target(train, name) # type: ignore
+    test_X, test_Y = split_data_target(test, name) # type: ignore
     return train_X, test_X, train_Y, test_Y
 
 

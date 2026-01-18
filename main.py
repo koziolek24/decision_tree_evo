@@ -2,7 +2,7 @@ from utils import split_train_test
 from evolution import evolution, calculate_accuracy
 import time
 
-def run_experiment(dataset_name):
+def run_experiment(dataset_name: str):
     print(f"\n{'='*20} {dataset_name} {'='*20}")
     print(f"Loading {dataset_name} dataset...")
     

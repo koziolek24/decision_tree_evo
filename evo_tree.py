@@ -1,14 +1,15 @@
 from copy import deepcopy
 from dataclasses import dataclass
 import random
-from typing import Callable, Self
+from typing import Callable
 
 
 @dataclass
 class TreeNode:
     parameter_key: int
-    children: list[tuple[float, Self]]
+    children: list[tuple[float, "TreeNode"]]
     represented_class: int
+    last_score: float = 0.0
 
     def get_class(self, case: list[float]) -> int:
         if len(self.children) == 0:
@@ -19,8 +20,8 @@ class TreeNode:
                 return self.children[i - 1][1].get_class(case)
         return self.children[0][1].get_class(case)
 
-    def all_nodes(self) -> list[Self]:
-        ret = [self]
+    def all_nodes(self) -> list["TreeNode"]:
+        ret: list["TreeNode"] = [self]
         for _, child in self.children:
             ret.extend(child.all_nodes())
         return ret
@@ -46,15 +47,15 @@ class TreeNode:
         if random.random() < add_child_prob:
             self.insert_random_split(split_rng, random_node(class_rng, parameter_rng))
 
-    def insert_random_split(self, rng: Callable[[], float], child: Self):
+    def insert_random_split(self, rng: Callable[[], float], child: "TreeNode"):
         split = rng()
         self.children.append((split, child))
         self.children.sort(key=lambda x: x[0])
 
-    def random_descendant(self) -> Self:
+    def random_descendant(self) -> "TreeNode":
         return random.choice(self.all_nodes())
 
-    def find_parent(self, target: Self) -> Self | None:
+    def find_parent(self, target: "TreeNode") -> "TreeNode | None":
         for _, child in self.children:
             if child is target:
                 return self
