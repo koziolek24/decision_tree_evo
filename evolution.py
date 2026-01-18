@@ -20,12 +20,13 @@ def calculate_accuracy(tree : TreeNode, X : pd.DataFrame, Y : pd.Series) -> floa
 
     return correct/len(Y)
 
-def evolution(generations: int, population_count: int, train_X: pd.DataFrame, train_Y: pd.Series, sample_size: int, cross_breed_prob: float, add_child_prob: float) -> TreeNode:
+def evolution(population_count: int, train_X: pd.DataFrame, train_Y: pd.Series, sample_size: int, cross_breed_prob: float, add_child_prob: float, patience: int) -> TreeNode:
     parameters_count = train_X.shape[1]
     classes_count = train_Y.nunique()
     population = initialize_population(population_count, parameters_count, classes_count)
     best_tree = None
     best_score = -1
+    no_improvement_count = 0
 
     min_val = train_X.min().min()
     max_val = train_X.max().max()
@@ -35,7 +36,7 @@ def evolution(generations: int, population_count: int, train_X: pd.DataFrame, tr
     rng_split = lambda: random.uniform(min_val, max_val)
     rng_delta = lambda: random.gauss(0, (max_val - min_val) * 0.1)
 
-    for _ in range(generations):
+    while True:
         scores = []
         for tree in population:
             score = calculate_accuracy(tree, train_X, train_Y)
@@ -44,6 +45,15 @@ def evolution(generations: int, population_count: int, train_X: pd.DataFrame, tr
             if score > best_score:
                 best_score = score
                 best_tree = tree
+                no_improvement_count = 0
+            else:
+                no_improvement_count += 1
+
+            if no_improvement_count >= patience:
+                break
+        
+        if no_improvement_count >= patience:
+            break
 
         new_population = []
         while len(new_population) < population_count:

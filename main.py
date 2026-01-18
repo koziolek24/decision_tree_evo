@@ -2,7 +2,7 @@ from utils import split_train_test
 from evolution import evolution, calculate_accuracy
 import time
 
-def run_experiment(dataset_name):
+def run_experiment(dataset_name, population_count=200, sample_size=5, cross_breed_prob=0.8, add_child_prob=0.6, patience=10):
     print(f"\n{'='*20} {dataset_name} {'='*20}")
     print(f"Loading {dataset_name} dataset...")
     
@@ -10,27 +10,21 @@ def run_experiment(dataset_name):
         train_X, test_X, train_Y, test_Y = split_train_test(dataset_name)
     except Exception as e:
         print(f"Failed to load dataset: {e}")
-        return
+        return None
 
     print(f"Train size: {len(train_X)}, Test size: {len(test_X)}")
-    
-    generations = 50
-    population_count = 50
-    sample_size = 3
-    cross_breed_prob = 0.2
-    add_child_prob = 0.3
     
     print("Starting evolution...")
     start_time = time.time()
     
     best_tree = evolution(
-        generations=generations,
         population_count=population_count,
         train_X=train_X,
         train_Y=train_Y,
         sample_size=sample_size,
         cross_breed_prob=cross_breed_prob,
-        add_child_prob=add_child_prob
+        add_child_prob=add_child_prob,
+        patience=patience,
     )
     
     end_time = time.time()
@@ -43,8 +37,20 @@ def run_experiment(dataset_name):
         
         print(f"Train Accuracy: {train_accuracy:.4f}")
         print(f"Test Accuracy:  {test_accuracy:.4f}")
+        
+        return {
+            'dataset': dataset_name,
+            'train_accuracy': train_accuracy,
+            'test_accuracy': test_accuracy,
+            'duration': duration,
+            'population_count': population_count,
+            'sample_size': sample_size,
+            'cross_breed_prob': cross_breed_prob,
+            'add_child_prob': add_child_prob
+        }
     else:
         print("Evolution failed to produce a valid tree.")
+        return None
 
 def main():
     datasets = [
