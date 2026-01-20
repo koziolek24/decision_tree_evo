@@ -2,6 +2,7 @@ from copy import deepcopy
 from evo_tree import TreeNode, cross_breed
 import pandas as pd
 import random
+import numpy as np
 
 
 def initialize_population(
@@ -21,14 +22,16 @@ def initialize_population(
     return population
 
 
-def calculate_accuracy(tree: TreeNode, X: pd.DataFrame, Y: pd.Series) -> float:
-    correct = 0
-    for row, target in zip(X.itertuples(index=False, name=None), Y):
-        prediction = tree.get_class(row)  # type: ignore
-        if prediction == target:
-            correct += 1
-
-    return correct / len(Y)
+def calculate_accuracy(
+    tree: TreeNode, X: pd.DataFrame | np.ndarray, Y: pd.Series | np.ndarray
+) -> float:
+    if isinstance(X, pd.DataFrame):
+        X = X.values
+    if isinstance(Y, pd.Series):
+        Y = Y.values
+    
+    predictions = tree.predict(X)
+    return np.mean(predictions == Y)
 
 
 def evolution(
@@ -51,6 +54,10 @@ def evolution(
 
     min_val = train_X.min().min()
     max_val = train_X.max().max()
+
+    # Convert to numpy for faster processing
+    train_X = train_X.values
+    train_Y = train_Y.values
 
     def rng_class():
         return random.randint(0, classes_count - 1)

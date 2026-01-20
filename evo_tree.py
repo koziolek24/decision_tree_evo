@@ -2,6 +2,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 import random
 from typing import Callable
+import numpy as np
 
 
 @dataclass
@@ -35,6 +36,33 @@ class TreeNode:
             return self.left_child.get_class(case)
         else:
             return self.right_child.get_class(case)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        predictions = np.full(X.shape[0], -1, dtype=int)
+        indices = np.arange(X.shape[0])
+        self._predict_recursive(X, indices, predictions)
+        return predictions
+
+    def _predict_recursive(
+        self, X: np.ndarray, indices: np.ndarray, predictions: np.ndarray
+    ):
+        if len(indices) == 0:
+            return
+
+        if self.left_child is None and self.right_child is None:
+            if self.represented_class is not None:
+                predictions[indices] = self.represented_class
+            return
+
+        # Internal node
+        feature_values = X[indices, self.parameter_key]
+        left_mask = feature_values <= self.parameter_split
+        right_mask = ~left_mask
+
+        if self.left_child:
+            self.left_child._predict_recursive(X, indices[left_mask], predictions)
+        if self.right_child:
+            self.right_child._predict_recursive(X, indices[right_mask], predictions)
 
     def all_nodes(self) -> list["TreeNode"]:
         ret: list["TreeNode"] = [self]
