@@ -11,7 +11,13 @@ def initialize_population(
     for _ in range(population_count):
         parameterID = random.randint(0, parameters_count - 1)
         classID = random.randint(0, classes_count - 1)
-        population.append(TreeNode(parameterID, [], classID))
+        population.append(
+            TreeNode(
+                parameter_key=parameterID,
+                represented_class=classID,
+                parameter_split=random.random(),
+            )
+        )
     return population
 
 
@@ -56,7 +62,7 @@ def evolution(
         return random.uniform(min_val, max_val)
 
     def rng_delta():
-        return random.gauss(0, (max_val - min_val) * 0.1)
+        return random.gauss(0, (max_val - min_val) * 0.25)
 
     def penalty(tree: TreeNode):
         return 1 - 0.01 * len(tree.all_nodes())
@@ -72,18 +78,15 @@ def evolution(
                 best_score = score
                 best_tree = tree
                 no_improvement_count = 0
-            else:
-                no_improvement_count += 1
-
-            if no_improvement_count >= patience:
-                break
 
         if no_improvement_count >= patience:
             break
+        no_improvement_count += 1
 
         new_population: list[TreeNode] = sorted(
             population, key=lambda x: x.last_score * penalty(x)
         )[: int(len(population) * 0.10)]
+
         while len(new_population) < population_count:
             left_sample = random.sample(range(population_count), sample_size)
             left_winner = max(
@@ -96,6 +99,7 @@ def evolution(
                 right_sample, key=lambda x: scores[x] * penalty(population[x])
             )
             right_parent = population[right_winner]
+
             if random.random() < cross_breed_prob:
                 left_child, right_child = cross_breed(left_parent, right_parent)
             else:
@@ -113,5 +117,6 @@ def evolution(
             if len(new_population) < population_count:
                 new_population.append(right_child)
         population = new_population
+
     assert best_tree is not None
     return best_tree
