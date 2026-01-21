@@ -62,15 +62,37 @@ def run_experiment(
 
 
 def main():
-    datasets = [
-        "breast_cancer",
-        "winequality_red",
-        "winequality_white",
-        "airline_passenger_satisfaction",
-    ]
+    configs = {
+        "breast_cancer": {
+            "population_count": 200,
+            "patience": 10,
+            "sample_size": 5
+        },
+        "winequality_red": {
+            "population_count": 300,
+            "patience": 15,
+            "sample_size": 10
+        },
+        "winequality_white": {
+            "population_count": 300,
+            "patience": 15,
+            "sample_size": 10
+        },
+        "airline_passenger_satisfaction": {
+            "population_count": 500,
+            "patience": 20,
+            "sample_size": 5,
+            "elitism_rate": 0.2,
+            "cross_breed_prob": 1.0,
+            "add_child_prob": 0.1,
+            "penalty_type": "linear",
+            "shallow_penalty_rate": 0.1,
+            "shallow_threshold": 15
+        },
+    }
 
-    for ds in datasets:
-        run_experiment(ds)
+    for dataset_name, config in configs.items():
+        run_experiment(dataset_name, **config)
 
 
 if __name__ == "__main__":

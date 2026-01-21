@@ -3,6 +3,7 @@ from evo_tree import TreeNode, cross_breed
 import pandas as pd
 import random
 import numpy as np
+import math
 
 
 def initialize_population(
@@ -42,6 +43,11 @@ def evolution(
     cross_breed_prob: float,
     add_child_prob: float,
     patience: int,
+    penalty_rate: float = 0.001,
+    shallow_penalty_rate: float = 0.5,
+    shallow_threshold: int = 10,
+    elitism_rate: float = 0.1,
+    penalty_type: str = 'linear'
 ) -> TreeNode:
     parameters_count = train_X.shape[1]
     classes_count = train_Y.nunique()
@@ -72,7 +78,19 @@ def evolution(
         return random.gauss(0, (max_val - min_val) * 0.25)
 
     def penalty(tree: TreeNode):
-        return 1 - 0.01 * len(tree.all_nodes())
+        # Penalize huge trees
+        node_count = len(tree.all_nodes())
+        
+        if penalty_type == 'exponential':
+            size_penalty = math.exp(-penalty_rate * node_count)
+        else:
+            size_penalty = 1 - penalty_rate * node_count
+        
+        # Penalize very shallow trees heavily (encourage growth)
+        if node_count < shallow_threshold:
+            return size_penalty * shallow_penalty_rate
+            
+        return size_penalty
 
     while True:
         scores: list[float] = []
@@ -91,8 +109,8 @@ def evolution(
         no_improvement_count += 1
 
         new_population: list[TreeNode] = sorted(
-            population, key=lambda x: x.last_score * penalty(x)
-        )[: int(len(population) * 0.10)]
+            population, key=lambda x: x.last_score * penalty(x), reverse=True
+        )[: int(len(population) * elitism_rate)]
 
         while len(new_population) < population_count:
             left_sample = random.sample(range(population_count), sample_size)
