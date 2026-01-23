@@ -12,7 +12,7 @@ class TreeNode:
     left_child: "TreeNode | None" = None
     right_child: "TreeNode | None" = None
     represented_class: int | None = None
-    last_score: float = 0.0
+    last_score: float = -1.0
 
     def get_class(self, case: list[float]) -> int:
         if (
@@ -54,7 +54,6 @@ class TreeNode:
                 predictions[indices] = self.represented_class
             return
 
-        # Internal node
         feature_values = X[indices, self.parameter_key]
         left_mask = feature_values <= self.parameter_split
         right_mask = ~left_mask
@@ -76,22 +75,35 @@ class TreeNode:
         self,
         class_rng: Callable[[], int],
         parameter_rng: Callable[[], int],
-        delta_split_rng: Callable[[], float],
-        split_rng: Callable[[], float],
+        param_ranges: list[tuple[float, float]],
         add_child_prob: float,
     ):
-        mutation_idx = random.randint(0, 4)
+        self.random_descendant().mutate_node(
+            class_rng, parameter_rng, param_ranges, add_child_prob
+        )
+        return
+
+    def mutate_node(
+        self,
+        class_rng: Callable[[], int],
+        parameter_rng: Callable[[], int],
+        param_ranges: list[tuple[float, float]],
+        add_child_prob: float,
+    ):
+        mutation_idx = random.randint(0, 3)
 
         if mutation_idx == 1:
             self.represented_class = class_rng()
         elif mutation_idx == 2:
             self.parameter_key = parameter_rng()
         elif mutation_idx == 3:
-            self.parameter_split += delta_split_rng()
-
-        if random.random() < add_child_prob:
-            self.left_child = random_node(class_rng, parameter_rng)
-            self.right_child = random_node(class_rng, parameter_rng)
+            min_val, max_val = param_ranges[self.parameter_key]
+            delta = random.gauss(0, (max_val - min_val) * 0.25)
+            self.parameter_split += delta
+        if self.left_child is None and self.right_child is None:
+            if random.random() < add_child_prob:
+                self.left_child = random_node(class_rng, parameter_rng, param_ranges)
+                self.right_child = random_node(class_rng, parameter_rng, param_ranges)
 
     def random_descendant(self) -> "TreeNode":
         return random.choice(self.all_nodes())
@@ -116,12 +128,17 @@ type Tree = TreeNode
 
 
 def random_node(
-    class_rng: Callable[[], int], parameter_rng: Callable[[], int]
+    class_rng: Callable[[], int], 
+    parameter_rng: Callable[[], int],
+    param_ranges: list[tuple[float, float]]
 ) -> TreeNode:
+    param_key = parameter_rng()
+    min_val, max_val = param_ranges[param_key]
     return TreeNode(
-        parameter_key=parameter_rng(),
+        parameter_key=param_key,
         represented_class=class_rng(),
-        parameter_split=random.random(),
+        parameter_split=random.uniform(min_val, max_val),
+        last_score=-1.0
     )
 
 

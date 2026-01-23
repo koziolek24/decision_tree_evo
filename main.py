@@ -10,9 +10,10 @@ def run_experiment(
     cross_breed_prob: float = 0.8,
     add_child_prob: float = 0.6,
     patience: int = 10,
+    elitism_rate: float = 0.2,
+    penalty_type: str = "linear"
 ):
-    print(f"\n{'=' * 20} {dataset_name} {'=' * 20}")
-    print(f"Loading {dataset_name} dataset...")
+    print(f"Loading {dataset_name}")
 
     try:
         train_X, test_X, train_Y, test_Y = split_train_test(dataset_name)
@@ -22,7 +23,6 @@ def run_experiment(
 
     print(f"Train size: {len(train_X)}, Test size: {len(test_X)}")
 
-    print("Starting evolution...")
     start_time = time.time()
 
     best_tree = evolution(
@@ -33,11 +33,13 @@ def run_experiment(
         cross_breed_prob=cross_breed_prob,
         add_child_prob=add_child_prob,
         patience=patience,
+        elitism_rate=elitism_rate, 
+        penalty_type=penalty_type
     )
 
     end_time = time.time()
     duration = end_time - start_time
-    print(f"Evolution finished in {duration:.2f} seconds.")
+    print(f"Runtime: {duration:.2f} seconds.")
 
     if best_tree:
         test_accuracy = calculate_accuracy(best_tree, test_X, test_Y)
@@ -64,30 +66,40 @@ def run_experiment(
 def main():
     configs = {
         "breast_cancer": {
-            "population_count": 200,
-            "patience": 10,
-            "sample_size": 5
+            "add_child_prob": 0.5434434683002587,
+            "cross_breed_prob": 0.908897907718663,
+            "elitism_rate": 0.04974313630683449,
+            "patience": 15,
+            "penalty_type": 'linear',
+            "population_count": 30,
+            "sample_size": 10
         },
         "winequality_red": {
-            "population_count": 300,
-            "patience": 15,
-            "sample_size": 10
+            "add_child_prob": 0.3496,
+            "cross_breed_prob": 0.9803,
+            "elitism_rate": 0.3687,
+            "patience": 20,
+            "penalty_type": 'linear',
+            "population_count": 50,
+            "sample_size": 25
         },
         "winequality_white": {
-            "population_count": 300,
-            "patience": 15,
-            "sample_size": 10
+             "add_child_prob": 0.3560,
+             "cross_breed_prob": 0.9933,
+             "elitism_rate": 0.2387,
+             "patience": 20,
+             "penalty_type": 'linear',
+             "population_count": 500,
+             "sample_size": 5
         },
         "airline_passenger_satisfaction": {
-            "population_count": 500,
-            "patience": 20,
-            "sample_size": 5,
-            "elitism_rate": 0.2,
-            "cross_breed_prob": 1.0,
-            "add_child_prob": 0.1,
-            "penalty_type": "linear",
-            "shallow_penalty_rate": 0.1,
-            "shallow_threshold": 15
+            "add_child_prob": 0.2570,
+            "cross_breed_prob": 0.8650,
+            "elitism_rate": 0.1627,
+            "patience": 50,
+            "penalty_type": 'exponential',
+            "population_count": 200,
+            "sample_size": 100
         },
     }
 

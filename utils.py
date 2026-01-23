@@ -1,5 +1,6 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split # type: ignore
+from sklearn.preprocessing import LabelEncoder
 
 def load_csv(path : str, delimiter: str =','):
     return pd.read_csv(path, delimiter=delimiter)
@@ -28,8 +29,8 @@ def split_train_test(name : str):
             path = "data/airline-passenger-satisfaction"
             train = load_csv(path + "/train.csv")
             test = load_csv(path + "/test.csv")
-            train_X, train_Y = split_data_target(train, name)
-            test_X, test_Y = split_data_target(test, name)
+            train_X, train_Y, encoders = split_data_target(train, name)
+            test_X, test_Y, _ = split_data_target(test, name, encoders=encoders)
             return train_X, test_X, train_Y, test_Y
         if name == "winequality_red":
             path = "data/wine_quality/winequality-red.csv"
@@ -38,23 +39,39 @@ def split_train_test(name : str):
         else:
             raise ValueError("wrong name", name)
         df = load_csv(path, ';')
-    train, test = train_test_split(df, test_size=0.2) # type: ignore
-    train_X, train_Y = split_data_target(train, name) # type: ignore
-    test_X, test_Y = split_data_target(test, name) # type: ignore
+    stratify_col = None
+    if name == "breast_cancer":
+        stratify_col = df['Class']
+    elif name in ["winequality_red", "winequality_white"]:
+        stratify_col = df['quality']
+
+    train, test = train_test_split(df, test_size=0.2, random_state=42, stratify=stratify_col) # type: ignore
+    train_X, train_Y, _ = split_data_target(train, name) # type: ignore
+    test_X, test_Y, _ = split_data_target(test, name) # type: ignore
     return train_X, test_X, train_Y, test_Y
 
 
 
-def split_data_target(df : pd.DataFrame, name: str):
+def split_data_target(df : pd.DataFrame, name: str, encoders: dict = None):
     targets = {
         'airline_passenger_satisfaction': 'satisfaction',
         'winequality_red': 'quality',
         'winequality_white': 'quality',
         'breast_cancer': 'Class'
     }
-    for col in df.select_dtypes(include=['object', 'category']).columns:
-        df[col] = df[col].astype('category').cat.codes
+    
+    if encoders is None:
+        encoders = {}
+        for col in df.select_dtypes(include=['object', 'category']).columns:
+            le = LabelEncoder()
+            df[col] = le.fit_transform(df[col])
+            encoders[col] = le
+    else:
+        for col, le in encoders.items():
+            if col in df.columns:
+                df[col] = df[col].apply(lambda x: x if x in le.classes_ else le.classes_[0])
+                df[col] = le.transform(df[col])
 
     target = df[targets[name]]
     data = df.drop(targets[name], axis=1)
-    return data, target
+    return data, target, encoders

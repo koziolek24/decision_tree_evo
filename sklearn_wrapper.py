@@ -14,19 +14,16 @@ class EvoTreeClassifier(BaseEstimator, ClassifierMixin):
         add_child_prob=0.6,
         patience=10,
         penalty_rate=0.001,
-        shallow_penalty_rate=0.5,
-        shallow_threshold=10,
         elitism_rate=0.1,
         penalty_type='linear'
     ):
         self.population_count = population_count
-        self.sample_size = sample_size
+        self.population_count = population_count
+        self.sample_size = min(sample_size, population_count)
         self.cross_breed_prob = cross_breed_prob
         self.add_child_prob = add_child_prob
         self.patience = patience
         self.penalty_rate = penalty_rate
-        self.shallow_penalty_rate = shallow_penalty_rate
-        self.shallow_threshold = shallow_threshold
         self.elitism_rate = elitism_rate
         self.penalty_type = penalty_type
 
@@ -47,8 +44,6 @@ class EvoTreeClassifier(BaseEstimator, ClassifierMixin):
             add_child_prob=self.add_child_prob,
             patience=self.patience,
             penalty_rate=self.penalty_rate,
-            shallow_penalty_rate=self.shallow_penalty_rate,
-            shallow_threshold=self.shallow_threshold,
             elitism_rate=self.elitism_rate,
             penalty_type=self.penalty_type
         )

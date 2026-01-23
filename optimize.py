@@ -6,6 +6,7 @@ import numpy as np
 import time
 
 def optimize_dataset(dataset_name):    
+    print(dataset_name)
     train_X, test_X, train_Y, test_Y = split_train_test(dataset_name)
     X = train_X.values
     y = train_Y.values
@@ -17,15 +18,13 @@ def optimize_dataset(dataset_name):
     model = EvoTreeClassifier()
     
     param_dist = {
-        'population_count': [200, 500, 1000],
-        'sample_size': [10, 25, 50, 100],
+        'population_count': [10, 20, 30, 40, 50, 60, 75, 100, 150, 200, 500, 1000],
+        'sample_size': [2, 5, 10, 20],
         'cross_breed_prob': uniform(0.6, 0.4),
-        'add_child_prob': uniform(0.05, 0.8),
-        'patience': [20, 50, 100],
-        'penalty_rate': [0.00001, 0.0001, 0.001, 0.01],
-        'shallow_penalty_rate': [0.1, 0.3, 0.5],
-        'shallow_threshold': [10, 20, 30],
-        'elitism_rate': uniform(0.01, 0.49),
+        'add_child_prob': uniform(0.05, 0.5),
+        'patience': [10, 13, 15, 20, 50, 100],
+        'penalty_rate': [0.00001, 0.0001, 0.001, 0.01, 0.05, 0.1, 0.2],
+        'elitism_rate': uniform(0.01, 0.2),
         'penalty_type': ['linear', 'exponential']
     }
     
@@ -57,7 +56,7 @@ def optimize_dataset(dataset_name):
     return search.best_params_
 
 if __name__ == "__main__":
+    optimize_dataset('breast_cancer')
     optimize_dataset('winequality_red')
     optimize_dataset('winequality_white')
-    optimize_dataset('breast_cancer')
-    optimize_dataset('airline_passenger_satisfacion')
+    optimize_dataset('airline_passenger_satisfaction')
