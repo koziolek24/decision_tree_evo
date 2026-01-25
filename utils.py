@@ -1,24 +1,44 @@
+import time
 import pandas as pd
-from sklearn.model_selection import train_test_split # type: ignore
+import sklearn
+from sklearn.discriminant_analysis import StandardScaler
+from sklearn.model_selection import train_test_split  # type: ignore
 from sklearn.preprocessing import LabelEncoder
+import sklearn.preprocessing
 
-def load_csv(path : str, delimiter: str =','):
+
+def load_csv(path: str, delimiter: str = ","):
     return pd.read_csv(path, delimiter=delimiter)
 
-def load_data(path : str):
-    return pd.read_csv(path, names=['Class', 'age', 'menopause', 'tumor-size', 'inv-nodes', 'node-caps', 'deg-malig', 'breast', 'breast-quad', 'irradiat'])
+
+def load_data(path: str):
+    return pd.read_csv(
+        path,
+        names=[
+            "Class",
+            "age",
+            "menopause",
+            "tumor-size",
+            "inv-nodes",
+            "node-caps",
+            "deg-malig",
+            "breast",
+            "breast-quad",
+            "irradiat",
+        ],
+    )
 
 
-def split_train_test(name : str):
-    """"
-        valid names are: 
-            airline_passenger_satisfaction,
-            breast_cancer,
-            winequality_white,
-            winequality_red
+def split_train_test(name: str):
+    """ "
+    valid names are:
+        airline_passenger_satisfaction,
+        breast_cancer,
+        winequality_white,
+        winequality_red
 
-        use: returns train_X, test_X, train_Y, test_Y
-        everything is a pd.DataFrame
+    use: returns train_X, test_X, train_Y, test_Y
+    everything is a pd.DataFrame
     """
     df = None
     if name == "breast_cancer":
@@ -38,38 +58,51 @@ def split_train_test(name : str):
             path = "data/wine_quality/winequality-white.csv"
         else:
             raise ValueError("wrong name", name)
-        df = load_csv(path, ';')
+        df = load_csv(path, ";")
     stratify_col = None
     if name == "breast_cancer":
-        stratify_col = df['Class']
+        stratify_col = df["Class"]
     elif name in ["winequality_red", "winequality_white"]:
-        stratify_col = df['quality']
+        stratify_col = df["quality"]
 
-    train, test = train_test_split(df, test_size=0.2, random_state=42, stratify=stratify_col) # type: ignore
-    train_X, train_Y, _ = split_data_target(train, name) # type: ignore
-    test_X, test_Y, _ = split_data_target(test, name) # type: ignore
+    scaler = StandardScaler()
+
+    train, test = train_test_split(
+        df, test_size=0.2, random_state=None, stratify=stratify_col
+    )  # type: ignore
+    train_X, train_Y, _ = split_data_target(train, name)  # type: ignore
+    test_X, test_Y, _ = split_data_target(test, name)  # type: ignore
+
+    train_X = pd.DataFrame(
+        data=scaler.fit_transform(train_X), index=train_X.index, columns=train_X.columns
+    )
+    test_X = pd.DataFrame(
+        data=scaler.fit_transform(test_X), index=test_X.index, columns=test_X.columns
+    )
+
     return train_X, test_X, train_Y, test_Y
 
 
-
-def split_data_target(df : pd.DataFrame, name: str, encoders: dict = None):
+def split_data_target(df: pd.DataFrame, name: str, encoders: dict = None):
     targets = {
-        'airline_passenger_satisfaction': 'satisfaction',
-        'winequality_red': 'quality',
-        'winequality_white': 'quality',
-        'breast_cancer': 'Class'
+        "airline_passenger_satisfaction": "satisfaction",
+        "winequality_red": "quality",
+        "winequality_white": "quality",
+        "breast_cancer": "Class",
     }
-    
+
     if encoders is None:
         encoders = {}
-        for col in df.select_dtypes(include=['object', 'category']).columns:
+        for col in df.select_dtypes(include=["object", "category"]).columns:
             le = LabelEncoder()
             df[col] = le.fit_transform(df[col])
             encoders[col] = le
     else:
         for col, le in encoders.items():
             if col in df.columns:
-                df[col] = df[col].apply(lambda x: x if x in le.classes_ else le.classes_[0])
+                df[col] = df[col].apply(
+                    lambda x: x if x in le.classes_ else le.classes_[0]
+                )
                 df[col] = le.transform(df[col])
 
     target = df[targets[name]]

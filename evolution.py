@@ -77,10 +77,6 @@ def evolution(
     def rng_param():
         return random.randint(0, parameters_count - 1)
 
-    def rng_delta(param_key: int):
-        min_val, max_val = param_ranges[param_key]
-        return random.gauss(0, (max_val - min_val) * 0.25)
-
     def penalty(tree: TreeNode):
         node_count = len(tree.all_nodes())
 
