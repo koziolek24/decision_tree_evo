@@ -77,7 +77,7 @@ def split_train_test(name: str):
         data=scaler.fit_transform(train_X), index=train_X.index, columns=train_X.columns
     )
     test_X = pd.DataFrame(
-        data=scaler.fit_transform(test_X), index=test_X.index, columns=test_X.columns
+        data=scaler.transform(test_X), index=test_X.index, columns=test_X.columns
     )
 
     return train_X, test_X, train_Y, test_Y
